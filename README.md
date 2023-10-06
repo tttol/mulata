@@ -2,7 +2,6 @@
 mulata means `MUlti LAnguage TrAnslator`
 
 ## Getting Started
-
 First, run the development server:
 
 ```bash
