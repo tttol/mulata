@@ -2,40 +2,54 @@
 
 import { useEffect, useState } from "react";
 
+let stream: MediaStream | null = null;
 let mediaRecorder: MediaRecorder | null = null;
 let audioChunks: Blob[] = [];
 let webSocket: WebSocket | null = null;
 
 const startRecording = async () => {
   // ユーザーのマイクにアクセス
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
   // MediaRecorderの初期化
   mediaRecorder = new MediaRecorder(stream);
   
   // AWS TranscribeへのWebSocket接続を開く（URLは適宜変更してください）
   webSocket = new WebSocket("ws://localhost:3001/ws");
+  webSocket.onopen = () => {
+    alert("WebSocket open.");
+  }
 
-  // 音声データが利用可能になったら
-  mediaRecorder.ondataavailable = (event) => {
-    audioChunks.push(event.data);
-    // AWS Transcribeに音声データを送信
-    if (webSocket?.readyState === WebSocket.OPEN) {
-      webSocket.send(event.data);
-    }
-  };
+  webSocket.onmessage = (e) => {
+    alert(e.data);
+  }
 
   // 録音開始
   mediaRecorder.start();
+  mediaRecorder.ondataavailable = (event) => {
+    audioChunks.push(event.data);
+    if (webSocket?.readyState === WebSocket.OPEN) {
+      webSocket.send(event.data);
+      alert("send audio data");
+    } else {
+      alert("Failed to send audio data.");
+    }
+  };
 };
 
 const stopRecording = () => {
-  // 録音停止
-  mediaRecorder?.stop();
-  
-  // WebSocket接続を閉じる
-  webSocket?.close();
+  mediaRecorder?.stop();  
+  stream?.getTracks().forEach(track => track.stop());
 };
+
+const closeWebSocket = () => {
+    webSocket?.close();
+}
+
+// TODO 検証用 あとでけす
+const sendMessage = () => {
+  webSocket?.send("こんにちは by mulata");
+}
 
 const Page = () => {
   return (
@@ -44,6 +58,10 @@ const Page = () => {
       <button onClick={startRecording}>Start Recording</button>
       <br/>
       <button onClick={stopRecording}>Stop Recording</button>
+      <br/>
+      <button onClick={closeWebSocket}>Close WebSocket</button>
+      <br/>
+      <button onClick={sendMessage}>Send message</button>
     </main>
   );
 };
