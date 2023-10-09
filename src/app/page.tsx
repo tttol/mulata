@@ -15,7 +15,9 @@ const startRecording = async () => {
   mediaRecorder = new MediaRecorder(stream);
   
   // AWS TranscribeへのWebSocket接続を開く（URLは適宜変更してください）
-  webSocket = new WebSocket("ws://localhost:3001/ws");
+  const url = process.env.WS_URL;
+  // webSocket = new WebSocket("ws://localhost:3001/ws");
+  webSocket = new WebSocket(url ? url : "ws://localhost:3001/ws");
   webSocket.onopen = () => {
     alert("WebSocket open.");
   }
@@ -23,6 +25,10 @@ const startRecording = async () => {
   webSocket.onmessage = (e) => {
     alert(e.data);
   }
+
+  webSocket.onerror = (error) => {
+    console.error("WebSocket Error: ", error);
+  };  
 
   // 録音開始
   mediaRecorder.start();
