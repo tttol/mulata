@@ -16,7 +16,6 @@ const startRecording = async () => {
   
   // AWS TranscribeへのWebSocket接続を開く（URLは適宜変更してください）
   const url = process.env.WS_URL;
-  // webSocket = new WebSocket("ws://localhost:3001/ws");
   webSocket = new WebSocket(url ? url : "ws://localhost:3001/ws");
   webSocket.onopen = () => {
     alert("WebSocket open.");
